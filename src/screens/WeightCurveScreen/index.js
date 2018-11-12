@@ -173,7 +173,7 @@ export default class WeightCurveScreen extends React.Component {
     })
   }
 
-  _navigateBack = () => this.props.navigation.goBack()
+  _navigateBack = () => this.props.navigation.navigate('Home')
 
   _navigateToAddScreen = () => this.props.navigation.navigate('WeightCurveAdd')
 
