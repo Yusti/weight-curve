@@ -126,14 +126,14 @@ export default class WeightCurveScreen extends React.Component {
       }
     }
 
-    const weightDiff = (maxWeight - minWeight || 70) / 146
+    const weightDiff = (maxWeight - minWeight || 1) / 146
     const dateDiff = (maxDate - minDate) / (screenWidth - 130)
 
     const lines = []
     const points = []
 
     weightData.forEach((item, index) => {
-      const bottom = (item.weight - minWeight) / weightDiff
+      const bottom = maxWeight === minWeight ? 60 : (item.weight - minWeight) / weightDiff
       const left = (+new Date(item.date) - minDate) / dateDiff
       if (index < weightDataLength - 1) {
         const x = linesData[index].xDiff / weightDiff

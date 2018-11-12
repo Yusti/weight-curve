@@ -78,7 +78,7 @@ export default class WeightCurveFirstScreen extends React.Component {
       startDate > today
       || currentDate > today
       || !isDateFormat(startDate)
-      || !startDate(currentDate)
+      || !isDateFormat(currentDate)
       || startWeight <= 0
       || currentWeight <= 0
     ) {
