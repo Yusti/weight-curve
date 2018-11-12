@@ -1,7 +1,12 @@
 import React from 'react'
-import { View, TextInput, Text, TouchableOpacity, Alert } from 'react-native'
+import { ScrollView, View, Text, TouchableOpacity, Alert } from 'react-native'
 
 import * as firebase from 'firebase'
+import moment from 'moment'
+
+import Header from '../../components/Header'
+import StyledText from '../../components/StyledText'
+import StyledTextInput from '../../components/StyledTextInput'
 
 import styles from './styles'
 
@@ -11,73 +16,88 @@ export default class WeightCurveFirstScreen extends React.Component {
     this.state = {
       startDate: '',
       startWeight: null,
-      currentDate: '',
+      currentDate: moment().format('YYYY-MM-DD'),
       currentWeight: null,
     };
   }
 
-  static navigationOptions = ({ navigation }) => {
-    return {
-      title: "Weight curve",
-    };
-  };
+  componentDidMount() {
+    this._setUserDueDate()
+  }
 
   render() {
     const { startDate, startWeight, currentDate, currentWeight } = this.state;
     return (
       <View style={styles.container}>
-        <Text style={styles.fontBig}>
-          Welcome, add your weight to get started. This will sync to your pregnancy journey.
-        </Text>
-        <View style={styles.container}>
-          {this._renderTextInput('Date of start weight', startDate, this._getStartDate)}
-          {this._renderTextInput('Start weight', startWeight, this._getStartWeight)}
-          {this._renderTextInput('Current date', currentDate, this._getCurrentDate)}
-          {this._renderTextInput('Current weight', currentWeight, this._getCurrentWeight)}
-        </View>
-        <TouchableOpacity onPress={this._saveToDB} style={styles.pinkButton}>
-          <Text style={styles.buttonText}>Save</Text>
-        </TouchableOpacity>
+        <Header onBackPressed={this._navigateBack} />
+        <ScrollView>
+          <StyledText
+            style={styles.title}
+            text="Welcome, add your weight to get started. This will sync to your pregnancy journey."
+            size="big"
+            color="darkBlue"
+          />
+          <View style={styles.container}>
+            <StyledTextInput header="Date of start weight" value={startDate} onChangeText={this._setStartDate} />
+            <StyledTextInput header="Start weight" value={startWeight} onChangeText={this._setStartWeight} />
+            <StyledTextInput header="Current date" value={currentDate} onChangeText={this._setCurrentDate} />
+            <StyledTextInput header="Current weight" value={currentWeight} onChangeText={this._setCurrentWeight} />
+          </View>
+          <TouchableOpacity onPress={this._saveToDB} style={styles.pinkButton}>
+            <Text style={styles.buttonText}>Save</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
     )
   }
 
-  _renderTextInput = (header, value, actionOnUpdate) =>
-    <View style={styles.textInputWrapper}>
-      <Text style={styles.fontSmall}>{header}</Text>
-        <TextInput
-          value={value}
-          onChangeText={actionOnUpdate}
-          placeholder="Enter value here"
-          style={styles.fontMedium}
-        />
-    </View>
+  _setStartDate = startDate => this.setState({ startDate })
 
-  _getStartDate = startDate => this.setState({ startDate })
+  _setStartWeight = startWeight => this.setState({ startWeight })
 
-  _getStartWeight = startWeight => this.setState({ startWeight })
+  _setCurrentDate = currentDate => this.setState({ currentDate })
 
-  _getCurrentDate = currentDate => this.setState({ currentDate })
+  _setCurrentWeight = currentWeight => this.setState({ currentWeight })
 
-  _getCurrentWeight = currentWeight => this.setState({ currentWeight })
+  _setUserDueDate = () => {
+    const { user } = this.props.screenProps
+    firebase.database().ref(`/users/${user.uid}`).on('value', snapshot => {
+      this.setState({ startDate: moment(snapshot.val().dueDate).subtract(280, 'days').format('YYYY-MM-DD') })
+    })
+  }
 
   _saveToDB = () => {
     const { startDate, startWeight, currentDate, currentWeight } = this.state
     const { user } = this.props.screenProps
-    if (startDate && startWeight && currentDate && currentWeight) {
-      firebase.database().ref(`/users/${user.uid}/weight`).set([
-        {
-          date: startDate,
-          weight: startWeight,
-        },
-        {
-          date: currentDate,
-          weight: currentWeight,
-        }
-      ])
-      this.props.navigation.navigate('Home')
+    const today = moment().format('YYYY-MM-DD')
+    const isDateFormat = date => {
+      const dateRegexp = /(2\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
+      return dateRegexp.test(date);
+    }
+    if (
+      startDate > today
+      || currentDate > today
+      || !isDateFormat(startDate)
+      || !startDate(currentDate)
+      || startWeight <= 0
+      || currentWeight <= 0
+    ) {
+      Alert.alert('Wrong data format');
+    } else if (startDate && startWeight && currentDate && currentWeight) {
+      const ref = firebase.database().ref(`/weightCurvePointsByUser/${user.uid}`)
+      ref.push({
+        date: startDate,
+        weight: startWeight * 1000,
+      })
+      ref.push({
+        date: currentDate,
+        weight: currentWeight * 1000,
+      })
+      this.props.navigation.navigate('WeightCurve')
     } else {
-      Alert.alert('Please enter all fields');
+      Alert.alert('Please fill all data');
     }
   }
+
+  _navigateBack = () => this.props.navigation.goBack()
 }

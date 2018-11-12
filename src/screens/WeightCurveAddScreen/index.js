@@ -1,69 +1,66 @@
 import React from 'react'
-import { View, Button, TextInput, Text, TouchableOpacity, Alert } from 'react-native'
+import { View, Button, Alert } from 'react-native'
 
 import * as firebase from 'firebase'
+import moment from 'moment'
+
+import Header from '../../components/Header'
+import StyledTextInput from '../../components/StyledTextInput'
 
 import styles from './styles'
 
-export default class WeightCurveFirstScreen extends React.Component {
+export default class WeightCurveAddScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      startDate: '',
+      startDate: moment().format('YYYY-MM-DD'),
       startWeight: null,
     };
   }
 
-  static navigationOptions = ({ navigation }) => {
-    const { params = {} } = navigation.state
-    return {
-      title: "Weight curve",
-      headerRight: <Button onPress={() => params._saveToDB()} title="Save" />,
-    };
-  };
-
-  componentDidMount() {
-    this.props.navigation.setParams({ _saveToDB: this._saveToDB })
-  }
-
   render() {
-    const { startDate, startWeight, currentDate, currentWeight } = this.state;
+    const { startDate, startWeight } = this.state;
     return (
       <View style={styles.container}>
+        <Header onBackPressed={this._navigateBack} RightButton={this._renderSaveButton} />
         <View style={styles.container}>
-          {this._renderTextInput('Date', startDate, this._getStartDate)}
-          {this._renderTextInput('Weight', startWeight, this._getStartWeight)}
+          <StyledTextInput header="Date" value={startDate} onChangeText={this._setStartDate} />
+          <StyledTextInput header="Weight" value={startWeight} onChangeText={this._setStartWeight} />
         </View>
       </View>
     )
   }
 
-  _renderTextInput = (header, value, actionOnUpdate) =>
-    <View style={styles.textInputWrapper}>
-      <Text style={styles.fontSmall}>{header}</Text>
-        <TextInput
-          value={value}
-          onChangeText={actionOnUpdate}
-          placeholder="Enter value here"
-          style={styles.fontMedium}
-        />
+  _renderSaveButton = () => (
+    <View style={styles.addButton}>
+      <Button onPress={this._saveToDB} title="Save" />
     </View>
+  )
 
-  _getStartDate = startDate => this.setState({ startDate })
+  _setStartDate = startDate => this.setState({ startDate })
 
-  _getStartWeight = startWeight => this.setState({ startWeight })
+  _setStartWeight = startWeight => this.setState({ startWeight })
 
   _saveToDB = () => {
-    const { startDate, startWeight, currentDate, currentWeight } = this.state
+    const { startDate, startWeight } = this.state
     const { user } = this.props.screenProps
-    if (startDate && startWeight) {
-      firebase.database().ref(`/users/${user.uid}/weight`).push({
+    const isDateFormat = date => {
+      const dateRegexp = /(2\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
+      return dateRegexp.test(date);
+    }
+    const today = moment().format('YYYY-MM-DD')
+    if (startDate > today || !isDateFormat(startDate) || startWeight <= 0) {
+      Alert.alert('Wrong dates');
+    } else if (startDate && startWeight) {
+      firebase.database().ref(`/weightCurvePointsByUser/${user.uid}`).push({
         date: startDate,
-        weight: startWeight,
+        weight: startWeight * 1000,
       });
-      this.props.navigation.navigate('WeightScreen')
+      this.props.navigation.goBack()
     } else {
-      Alert.alert('Please enter all fields');
+      Alert.alert('Please fill all data');
     }
   }
+
+  _navigateBack = () => this.props.navigation.goBack()
 }

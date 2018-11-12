@@ -23,5 +23,9 @@ export default createStackNavigator(
   },
   {
     initialRouteName: 'Home',
+    headerMode: 'none',
+    navigationOptions: {
+      headerVisible: false,
+    },
   },
 )

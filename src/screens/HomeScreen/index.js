@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Button, Text } from 'react-native'
 import { Facebook } from 'expo'
+import moment from 'moment'
 
 import * as firebase from 'firebase'
 
@@ -36,7 +37,6 @@ export default class HomeScreen extends React.Component {
       <View style={styles.container}>
         <Text>{user.displayName}</Text>
 
-        <Button style={styles.button} title="Update DB" onPress={this._updateDB} />
         <Button style={styles.button} title="Logout" onPress={this._logout} />
         <Button style={styles.button} title="Weight Curve" onPress={this._navigateToWeightCurves} />
       </View>
@@ -59,6 +59,23 @@ export default class HomeScreen extends React.Component {
           .auth()
           .signInAndRetrieveDataWithCredential(credential)
 
+        if (userFirebaseAuthProfile.additionalUserInfo.isNewUser) {
+          const user = {
+            id: userFirebaseAuthProfile.user.uid,
+            name: userFirebaseAuthProfile.user.displayName,
+            email: userFirebaseAuthProfile.user.email,
+            picture: userFirebaseAuthProfile.additionalUserInfo.profile.picture
+              ? {
+                uri: userFirebaseAuthProfile.additionalUserInfo.profile.picture.data.url,
+              }
+              : null,
+            dueDate: moment().add(266, 'days').format('YYYY-MM-DD')
+          }
+          await firebase
+            .database()
+            .ref(`/users/${user.id}`)
+            .set(user)
+        }
         console.info(
           'userFirebaseAuthProfile: ',
           JSON.stringify(userFirebaseAuthProfile, null, 4)
@@ -76,17 +93,12 @@ export default class HomeScreen extends React.Component {
   _navigateToWeightCurves = async () => {
     const { user } = this.props.screenProps
     const { navigation } = this.props
-    firebase.database().ref(`/users/${user.uid}/weight`).on("value", snapshot => {
+    firebase.database().ref(`/weightCurvePointsByUser/${user.uid}`).on("value", snapshot => {
       if (snapshot.val()) {
         navigation.navigate('WeightCurve')
       } else {
         navigation.navigate('WeightCurveFirst')
       }
     });
-  }
-
-  _updateDB = () => {
-    const { user } = this.props.screenProps
-    firebase.database().ref(`/users/${user.uid}/name`).set(user.displayName)
   }
 }
