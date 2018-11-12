@@ -12,13 +12,13 @@ import styles from './styles'
 
 export default class WeightCurveFirstScreen extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       startDate: '',
       startWeight: null,
       currentDate: moment().format('YYYY-MM-DD'),
       currentWeight: null,
-    };
+    }
   }
 
   componentDidMount() {
@@ -26,7 +26,7 @@ export default class WeightCurveFirstScreen extends React.Component {
   }
 
   render() {
-    const { startDate, startWeight, currentDate, currentWeight } = this.state;
+    const { startDate, startWeight, currentDate, currentWeight } = this.state
     return (
       <View style={styles.container}>
         <Header onBackPressed={this._navigateBack} />
@@ -38,10 +38,26 @@ export default class WeightCurveFirstScreen extends React.Component {
             color="darkBlue"
           />
           <View style={styles.container}>
-            <StyledTextInput header="Date of start weight" value={startDate} onChangeText={this._setStartDate} />
-            <StyledTextInput header="Start weight" value={startWeight} onChangeText={this._setStartWeight} />
-            <StyledTextInput header="Current date" value={currentDate} onChangeText={this._setCurrentDate} />
-            <StyledTextInput header="Current weight" value={currentWeight} onChangeText={this._setCurrentWeight} />
+            <StyledTextInput
+              header="Date of start weight"
+              value={startDate}
+              onChangeText={this._setStartDate}
+            />
+            <StyledTextInput
+              header="Start weight"
+              value={startWeight}
+              onChangeText={this._setStartWeight}
+            />
+            <StyledTextInput
+              header="Current date"
+              value={currentDate}
+              onChangeText={this._setCurrentDate}
+            />
+            <StyledTextInput
+              header="Current weight"
+              value={currentWeight}
+              onChangeText={this._setCurrentWeight}
+            />
           </View>
           <TouchableOpacity onPress={this._saveToDB} style={styles.pinkButton}>
             <Text style={styles.buttonText}>Save</Text>
@@ -61,9 +77,16 @@ export default class WeightCurveFirstScreen extends React.Component {
 
   _setUserDueDate = () => {
     const { user } = this.props.screenProps
-    firebase.database().ref(`/users/${user.uid}`).on('value', snapshot => {
-      this.setState({ startDate: moment(snapshot.val().dueDate).subtract(280, 'days').format('YYYY-MM-DD') })
-    })
+    firebase
+      .database()
+      .ref(`/users/${user.uid}`)
+      .on('value', snapshot => {
+        this.setState({
+          startDate: moment(snapshot.val().dueDate)
+            .subtract(280, 'days')
+            .format('YYYY-MM-DD'),
+        })
+      })
   }
 
   _saveToDB = () => {
@@ -71,20 +94,22 @@ export default class WeightCurveFirstScreen extends React.Component {
     const { user } = this.props.screenProps
     const today = moment().format('YYYY-MM-DD')
     const isDateFormat = date => {
-      const dateRegexp = /(2\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
-      return dateRegexp.test(date);
+      const dateRegexp = /(2\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/
+      return dateRegexp.test(date)
     }
     if (
-      startDate > today
-      || currentDate > today
-      || !isDateFormat(startDate)
-      || !isDateFormat(currentDate)
-      || startWeight <= 0
-      || currentWeight <= 0
+      startDate > today ||
+      currentDate > today ||
+      !isDateFormat(startDate) ||
+      !isDateFormat(currentDate) ||
+      startWeight <= 0 ||
+      currentWeight <= 0
     ) {
-      Alert.alert('Wrong data format');
+      Alert.alert('Wrong data format')
     } else if (startDate && startWeight && currentDate && currentWeight) {
-      const ref = firebase.database().ref(`/weightCurvePointsByUser/${user.uid}`)
+      const ref = firebase
+        .database()
+        .ref(`/weightCurvePointsByUser/${user.uid}`)
       ref.push({
         date: startDate,
         weight: startWeight * 1000,
@@ -95,7 +120,7 @@ export default class WeightCurveFirstScreen extends React.Component {
       })
       this.props.navigation.navigate('WeightCurve')
     } else {
-      Alert.alert('Please fill all data');
+      Alert.alert('Please fill all data')
     }
   }
 

@@ -27,5 +27,5 @@ export default createStackNavigator(
     navigationOptions: {
       headerVisible: false,
     },
-  },
+  }
 )

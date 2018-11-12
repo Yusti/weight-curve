@@ -16,9 +16,7 @@ export default function Header({ onBackPressed, RightButton }) {
         />
       </TouchableOpacity>
       <StyledText text="Weight curve" size="medium" style={styles.title} />
-      <View style={styles.rightButton}>
-        {!!RightButton && <RightButton />}
-      </View>
+      <View style={styles.rightButton}>{!!RightButton && <RightButton />}</View>
     </View>
   )
 }

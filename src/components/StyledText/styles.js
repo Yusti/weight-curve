@@ -26,5 +26,5 @@ export default StyleSheet.create({
   },
   darkBlue: {
     color: colors.darkBlue,
-  }
+  },
 })

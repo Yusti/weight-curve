@@ -20,11 +20,11 @@ export default StyleSheet.create({
     margin: 30,
     shadowColor: 'rgba(140, 45, 124, .25)',
     shadowOffset: { width: 0, height: 19 },
-    shadowOpacity: .2,
+    shadowOpacity: 0.2,
   },
   buttonText: {
     color: '#fff',
     textAlign: 'center',
     fontSize: 22,
-  }
+  },
 })

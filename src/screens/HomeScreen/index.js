@@ -38,7 +38,11 @@ export default class HomeScreen extends React.Component {
         <Text>{user.displayName}</Text>
 
         <Button style={styles.button} title="Logout" onPress={this._logout} />
-        <Button style={styles.button} title="Weight Curve" onPress={this._navigateToWeightCurves} />
+        <Button
+          style={styles.button}
+          title="Weight Curve"
+          onPress={this._navigateToWeightCurves}
+        />
       </View>
     )
   }
@@ -66,10 +70,14 @@ export default class HomeScreen extends React.Component {
             email: userFirebaseAuthProfile.user.email,
             picture: userFirebaseAuthProfile.additionalUserInfo.profile.picture
               ? {
-                uri: userFirebaseAuthProfile.additionalUserInfo.profile.picture.data.url,
-              }
+                  uri:
+                    userFirebaseAuthProfile.additionalUserInfo.profile.picture
+                      .data.url,
+                }
               : null,
-            dueDate: moment().add(266, 'days').format('YYYY-MM-DD')
+            dueDate: moment()
+              .add(266, 'days')
+              .format('YYYY-MM-DD'),
           }
           await firebase
             .database()
@@ -93,12 +101,15 @@ export default class HomeScreen extends React.Component {
   _navigateToWeightCurves = async () => {
     const { user } = this.props.screenProps
     const { navigation } = this.props
-    firebase.database().ref(`/weightCurvePointsByUser/${user.uid}`).on("value", snapshot => {
-      if (snapshot.val()) {
-        navigation.navigate('WeightCurve')
-      } else {
-        navigation.navigate('WeightCurveFirst')
-      }
-    });
+    firebase
+      .database()
+      .ref(`/weightCurvePointsByUser/${user.uid}`)
+      .on('value', snapshot => {
+        if (snapshot.val()) {
+          navigation.navigate('WeightCurve')
+        } else {
+          navigation.navigate('WeightCurveFirst')
+        }
+      })
   }
 }
